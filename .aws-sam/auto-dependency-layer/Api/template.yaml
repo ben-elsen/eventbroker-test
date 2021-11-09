@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: The SAM file for the api
+Parameters:
+  EspagonToken:
+    Description: The token for Espagon
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /monitoring/espagon/token
+  EpsagonAccountId:
+    Type: Number
+    Description: The account id of Espagon
+    Default: '066549572091'
+  S3ArtifactBucketName:
+    Description: The name of the s3 bucket, holding the schema and resolvers for the
+      api
+    Type: String
+  CodepipelineExecutionId:
+    Type: String
+    Description: The id of the execution that is running at the moment
+  EpsagonPythonLayerVersion:
+    Type: Number
+  AppNameStage:
+    Type: String
+    Description: The name and stage of the application, needed for Espagon
+  Environment:
+    Type: String
+    Description: The environment of the deployment
+Globals:
+  Function:
+    Timeout: 300
+    Runtime: python3.8
+    MemorySize: 128
+    Handler: handler.lambda_handler
+    Layers:
+    - Fn::Sub: arn:aws:lambda:${AWS::Region}:${EpsagonAccountId}:layer:epsagon-python-layer:${EpsagonPythonLayerVersion}
+    Environment:
+      Variables:
+        espagon_token:
+          Ref: EspagonToken
+        app_name_stage:
+          Ref: AppNameStage
+        AUTOWRAPT_BOOTSTRAP: epsagon
+Resources:
+  EventBrokerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      DefinitionBody:
+        openapi: 3.0.1
+        info:
+          version: '1'
+          title: EventBrokerApi
+          description: The api for the EventBroker
+        servers:
+        - url: https://dp64zdwm4d.execute-api.eu-west-1.amazonaws.com/{basePath}
+          variables:
+            basePath:
+              default: ''
+        paths:
+          /event/microservice-holo/holo_deleted_from_db/v0:
+            post:
+              description: Publish a holo_delete_from_db v0
+              x-amazon-apigateway-request-validator: all
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      required:
+                      - id
+                      - keys
+                      - reciever
+                      properties:
+                        id:
+                          type: string
+                        keys:
+                          type: array
+                          items:
+                            type: string
+                        reciever:
+                          type: string
+              responses:
+                '200':
+                  description: Successfully published holo_delete_from_db event v0
+                '400':
+                  description: Invalid request
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+              security:
+              - sigv4: []
+              x-amazon-apigateway-integration:
+                payloadFormatVersion: '2.0'
+                type: aws_proxy
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${IngestionFunction}/invocations
+                connectionType: INTERNET
+        components:
+          securitySchemes:
+            sigv4:
+              type: apiKey
+              name: Authorization
+              in: header
+              x-amazon-apigateway-authtype: awsSigv4
+        x-amazon-apigateway-importexport-version: '1.0'
+        x-amazon-apigateway-request-validators:
+          all:
+            validateRequestBody: true
+            validateRequestParameters: true
+      StageName:
+        Ref: Environment
+  IngestionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: IngestionFunction
+      Description: The function to ingest events
+  IngestionFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+        - IngestionFunction
+        - Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${EventBrokerApi}/*

@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: The SAM file for the eventbroker
+
+Parameters:
+  S3ArtifactBucketName:
+    Description: The name of the s3 bucket, holding the api definition
+    Type: String
+  CodepipelineExecutionId:
+    Type: String
+    Description: The id of the execution that is running at the moment
+  EpsagonPythonLayerVersion:
+    Type: Number
+  AppNameStage: 
+    Type: String
+    Description: The name and stage of the application, needed for Espagon
+  Environment:
+    Type: String
+    Description: The environment of the deployment
+        
+Resources:
+  ##################################################################################
+  # The api
+  ##################################################################################
+  Api:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./api/sam.yml
+      Parameters:
+        S3ArtifactBucketName: !Ref S3ArtifactBucketName
+        CodepipelineExecutionId: !Ref CodepipelineExecutionId
+        EpsagonPythonLayerVersion: !Ref EpsagonPythonLayerVersion
+        AppNameStage: !Ref AppNameStage
+        Environment: !Ref Environment

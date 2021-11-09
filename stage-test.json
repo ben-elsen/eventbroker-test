@@ -1,0 +1,7 @@
+{
+  "Parameters" : {
+    "EpsagonPythonLayerVersion": "284",
+    "AppNameStage": "eventbroker-dev",
+    "Environment": "dev"
+  }
+}

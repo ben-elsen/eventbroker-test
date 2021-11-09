@@ -1,0 +1,68 @@
+openapi: 3.0.1
+info:
+  version: '1'
+  title: EventBrokerApi
+  description: The api for the EventBroker
+servers:
+- url: "https://dp64zdwm4d.execute-api.eu-west-1.amazonaws.com/{basePath}"
+  variables:
+    basePath:
+      default: ""
+paths:
+  /event/microservice-holo/holo_deleted_from_db/v0:
+    post:
+      description: Publish a holo_delete_from_db v0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object 
+              required: 
+                - id
+                - keys
+                - reciever
+              properties:
+                id:
+                  type: string
+                keys:
+                  type: array
+                  items:
+                    type: string
+                reciever:
+                  type: string
+      responses:
+        '200':
+          description: Successfully published holo_delete_from_db event v0
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:   
+                  message:
+                    type: string
+      security:
+        - sigv4: []
+      x-amazon-apigateway-integration:
+        payloadFormatVersion: "2.0"
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-1:732279076585:function:eventbroker-app-stack-dev-Api-5F-IngestionFunction-hNT0m6ksScv7/invocations"
+        connectionType: "INTERNET"
+components:
+  securitySchemes:
+    sigv4:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "awsSigv4"
+x-amazon-apigateway-importexport-version: "1.0"
+x-amazon-apigateway-request-validators: 
+  all: 
+    validateRequestBody: true
+    validateRequestParameters: true
+    params-only: 
+      validateRequestBody: false
+      validateRequestParameters: true

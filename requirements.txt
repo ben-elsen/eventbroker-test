@@ -1,0 +1,5 @@
+###### Requirements for the unit test phase ######`
+pytest==6.1.2
+pytest-cov==2.10.1
+moto==1.3.16
+epsagon==1.64.2

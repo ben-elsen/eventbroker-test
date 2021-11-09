@@ -1,0 +1,21 @@
+== Air microservice: User
+
+This is the repository with the code for the the User microservice. It's responsibility is the management of users
+
+=== 1. Required
+* Python 3.8
+
+=== 2. Virtual env 
+
+```
+pip install virtualenv
+virtualenv --python=/usr/local/Cellar/python@3.8/3.8.6_1/bin/python3.8 venv
+source venv/bin/activate 
+pip install -r requirements.txt
+```
+
+=== 3. Testing
+
+``` 
+pytest --cov=./tests ./tests 
+```

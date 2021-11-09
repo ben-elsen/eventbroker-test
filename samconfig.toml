@@ -1,0 +1,13 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "eventbroker-app-stack-dev"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-qk1wt0bhma95"
+s3_prefix = "eventbroker-app-stack-dev"
+region = "eu-west-1"
+profile = "assumeAdminINMSEventbridgeDev"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
+parameter_overrides = "S3ArtifactBucketName=\"eventbroker-cicd-pipeline-artefacts\" CodepipelineExecutionId=\"1600\" EpsagonPythonLayerVersion=\"284\" AppNameStage=\"eventbroker-dev\" Environment=\"dev\""
+image_repositories = []
